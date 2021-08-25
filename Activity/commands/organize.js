@@ -1,0 +1,79 @@
+let fs=require('fs');
+const { type } = require('os');
+let path =require('path');
+let types = {
+    media: ["mp4", "mkv", "mp3"],
+    archives: ['zip', '7z', 'rar', 'tar', 'gz', 'ar', 'iso', "xz"],
+    documents: ['docx', 'doc', 'pdf', 'xlsx', 'xls', 'odt', 'ods', 'odp', 'odg', 'odf', 'txt', 'ps', 'tex'],
+    app: ['exe', 'dmg', 'pkg', "deb"],
+    pictures: ['png','jpg','jpeg']
+}
+
+// for(let type in types){
+//     console.log(Object.values(type));
+// }
+
+
+// function organizeFn(srcpath){
+//     let baseName = path.basename(srcpath);
+//     let extName = path.extname(baseName).slice(1);
+//     console.log(extName);
+//     for(let type in types){
+//         for(let i = 0; i < types[type].length; i++){
+//             if(extName === types[type][i]){
+//                 return true;
+//             }
+//         }
+        
+//     }
+
+// }
+
+function organizeFn(srcpath){
+    let entities = fs.readdirSync(srcpath);
+    //creating the folder for the same files
+    let organizeFolder = path.join(srcpath, 'organizedFiles');
+    // console.log(organizeFolder);
+
+    if(!fs.existsSync(organizeFolder)){
+        fs.mkdirSync(organizeFolder);
+    }
+
+    for(let i = 0; i<entities.length; i++){
+        let file = entities[i];
+
+        if(fs.lstatSync(file).isFile()){
+            let type = checkType(file);
+            let typeFolder = path.join(organizeFolder, type);
+            if(!fs.existsSync(typeFolder)){
+                fs.mkdirSync(typeFolder);
+            }
+    
+            let src = path.join(srcpath, entities[i]);
+            let dest = path.join(typeFolder, entities[i]);
+
+            //copyFileSync doesn't copy the file rather the contents inside of files are copied.
+            fs.copyFileSync(src,dest);
+        }
+
+        // console.log(typeFolder);
+
+    }
+}
+
+function checkType(file){
+    for(let type in types){
+        for(let ext of types[type]){
+            if(path.extname(file).slice(1) == ext){
+                return type;
+            }
+        }
+    }
+
+    return 'others';
+}
+
+
+module.exports={
+    organizeFn : organizeFn
+}
